@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Crossing Game</title>
+  <style type="text/css">
+    canvas {
+      border: 2px solid black;
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Crossing Game</h1>
+  <canvas id="myCanvas" width="1000" height="500"> </canvas>
+
+  <script type="text/javascript">
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+
+    const screenWidth = 1000;
+    const screenHeight = 500;
+    const width = 50;
+    var isGameLive = true;
+
+    // Game characters class
+    class GameCharacter {
+      constructor(x, y, width, height, color, speed) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.color = color;
+        this.speed = speed;
+        this.maxSpeed = 4;
+      }
+
+      moveVertically() {
+        if (this.y > screenHeight - 100 || this.y < 50) {
+          this.speed = -this.speed;
+        }
+
+        this.y += this.speed;
+      }
+      moveHorizontally() {
+        this.x += this.speed;
+      }
+    }
+
+    // Create enemies
+    var enemies = [
+      new GameCharacter(200, 250, width, width, "rgb(0, 0, 255)", 2),
+      new GameCharacter(450, screenHeight - 100, width, width, "rgb(0, 0, 255)", 3),
+      new GameCharacter(700, 50, width, width, "rgb(0, 0, 255)", 4)
+    ];
+
+    // Create player
+    var player = new GameCharacter(50, 200, width, width, "rgb(0, 255, 0)", 0)
+
+    // Create goal
+    var goal = new GameCharacter(screenWidth - width, 200, width, 100, "rgb(0, 0, 0)", 0)
+
+    // Load Sprites
+    var sprites = {};
+
+    var loadSprites = function() {
+      sprites.player = new Image();
+      sprites.player.src = 'images/hero.png';
+
+      sprites.enemy = new Image();
+      sprites.enemy.src = 'images/enemy.png';
+
+      sprites.background = new Image();
+      sprites.background.src = 'images/floor.png';
+
+      sprites.goal = new Image();
+      sprites.goal.src = 'images/chest.png';
+    }
+
+
+    // Move according to key pressed
+    document.onkeydown = function(event) {
+      let keyPressed = event.keyCode;
+
+      if (keyPressed == 39) { 
+        player.speed = player.maxSpeed;
+      } else if(keyPressed == 37) {
+        player.speed = -player.maxSpeed;
+      }
+    };
+
+    document.onkeyup = function(event) {
+      var keyPressed = event.keyCode;
+      if(keyPressed == 39 || keyPressed == 37) {
+        player.speed = 0;
+      }
+      
+    }
+
+    // Collisions function
+    var checkCollisions = function(rect1, rect2) {
+      var xOverlap = Math.abs(rect1.x - rect2.x) <= Math.max(rect1.width, rect2.width);
+      var yOverlap = Math.abs(rect1.y - rect2.y) <= Math.max(rect1.height, rect2.height);
+      
+      return xOverlap && yOverlap;
+    }
+
+    // Draw game
+    var draw = function () {
+      // Clear the screen before draw it
+      ctx.clearRect(0, 0, screenWidth, screenHeight);
+
+      // Draw background
+      ctx.drawImage(sprites.background, 0, 0);
+
+      // Draw player
+      ctx.drawImage(sprites.player, player.x, player.y);
+
+      // draw enemies
+      enemies.forEach(function (element) {
+        ctx.drawImage(sprites.enemy, element.x, element.y);
+      });
+
+      //Draw goal
+      ctx.drawImage(sprites.goal, goal.x, goal.y);
+
+      // Old code ton draw
+      //ctx.fillStyle = player.color;
+      //ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    }
+
+    // Update game function
+    var update = function () {
+      // Check collisions between player and enemies
+      enemies.forEach(function (element) {
+        if(checkCollisions(player, element)){
+          debugger;
+          endGameLogic("You lose!!!! Game over!");
+        }
+
+        element.moveVertically();
+      });
+
+      // Check if player reached his goal
+      if(checkCollisions(player, goal)) {
+        endGameLogic("You Win!!!");
+      }
+      player.moveHorizontally();
+    };
+
+
+    var endGameLogic = function(text) {
+      isGameLive = false;
+      alert(text);
+      window.location = "";
+    }
+
+
+    // Step function to run the game
+    var step = function () {
+      update();
+      draw();
+
+      // Game loop
+      if(isGameLive) {
+        window.requestAnimationFrame(step);
+      }
+
+    };
+
+    loadSprites();
+    step();
+  </script>
+</body>
+
+</html>
